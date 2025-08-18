@@ -1,7 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <stack>
-#include <bits/stdc++.h>
+#include <queue>
+#include <algorithm>
 using namespace std;
 
 vector<int> depth_search ( vector<vector<int>> matriz, int comecoXY ) {
