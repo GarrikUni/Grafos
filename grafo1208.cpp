@@ -11,20 +11,19 @@ vector<int> depth_search ( vector<vector<int>> matriz, int startXY ) {
     
     pilha.push(startXY);
     while ( !pilha.empty() ) {
-        vertice = pilha.top();
-        pilha.pop();
+        vertice = pilha.top(); // top() retorna o elemento no topo, mas não remove
+        pilha.pop();  // pop() remove o elemento no topo, mas não o retorna
+        cout << vertice << endl;
         if( count(visitados.begin(), visitados.end(), vertice) == 0 ) {
             visitados.push_back(vertice);
-
-            for (int i = 0; i < matriz[vertice].size(); ++i) {
-                if (matriz[vertice][i] == 1) {
+            for (int i = matriz[vertice].size()-1; i >= 0; i--) { // Percorre ao contrário para funcionamento correto
+                if ( matriz[vertice][i] == 1 ) {
                     pilha.push(i);
                 }
             }
         }
 
     }
-
     return visitados;
 }
 
@@ -87,7 +86,7 @@ int main() {
     }
 
     vector<int> exemplo = depth_search(matriz, 0);
-    for (int i = 0; i < exemplo.size(); ++i) {
+    for (int i = 0; i < exemplo.size(); i++) {
         cout << exemplo[i] << endl;
     }
 
