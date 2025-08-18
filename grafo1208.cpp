@@ -4,26 +4,45 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-vector<int> depth_search ( vector<vector<int>> matriz, int startXY ) {
+vector<int> depth_search ( vector<vector<int>> matriz, int comecoXY ) {
     vector<int> visitados;
     stack<int> pilha;
     int vertice;
     
-    pilha.push(startXY);
+    pilha.push(comecoXY);
     while ( !pilha.empty() ) {
         vertice = pilha.top(); // top() retorna o elemento no topo, mas não remove
         pilha.pop();  // pop() remove o elemento no topo, mas não o retorna
-        cout << vertice << endl;
         if( count(visitados.begin(), visitados.end(), vertice) == 0 ) {
             visitados.push_back(vertice);
-            for (int i = matriz[vertice].size()-1; i >= 0; i--) { // Percorre ao contrário para funcionamento correto
+            for ( int i = matriz[vertice].size()-1; i >= 0; i-- ) { // Percorre ao contrário para funcionamento correto
                 if ( matriz[vertice][i] == 1 ) {
                     pilha.push(i);
                 }
             }
         }
-
     }
+
+    if ( visitados.size() < matriz.size() ) { // Verifica se existem Vertices nao exploradas
+        for ( int i = 0; i < matriz.size()-1; i++ ) {
+            if( count(visitados.begin(), visitados.end(), i) == 0 ) { // Se o Vertice nao foi visitado, performa DFS a partir dele
+                pilha.push(i);
+                while ( !pilha.empty() ) {
+                    vertice = pilha.top();
+                    pilha.pop();
+                    if( count(visitados.begin(), visitados.end(), vertice) == 0 ) {
+                        visitados.push_back(vertice);
+                        for ( int i = matriz[vertice].size()-1; i >= 0; i-- ) {
+                            if ( matriz[vertice][i] == 1 ) {
+                                pilha.push(i);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     return visitados;
 }
 
