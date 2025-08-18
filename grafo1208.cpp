@@ -46,6 +46,48 @@ vector<int> depth_search ( vector<vector<int>> matriz, int comecoXY ) {
     return visitados;
 }
 
+vector<int> breadth_search ( vector<vector<int>> matriz, int comecoXY ) {
+    vector<int> visitados;
+    queue<int> fila;
+    int vertice;
+    
+    fila.push(comecoXY);
+    while ( !fila.empty() ) {
+        vertice = fila.front(); // front() retorna o elemento no topo, mas não remove
+        fila.pop();  // pop() remove o elemento na frente, mas não o retorna
+        if( count(visitados.begin(), visitados.end(), vertice) == 0 ) {
+            visitados.push_back(vertice);
+            for ( int i = 0; i < matriz[vertice].size(); i++ ) {
+                if ( matriz[vertice][i] == 1 ) {
+                    fila.push(i);
+                }
+            }
+        }
+    }
+
+    if ( visitados.size() < matriz.size() ) { // Verifica se existem Vertices nao explorados
+        for ( int i = 0; i < matriz.size()-1; i++ ) {
+            if( count(visitados.begin(), visitados.end(), i) == 0 ) { // Se o Vertice nao foi visitado, performa BFS a partir dele
+                fila.push(i);
+                while ( !fila.empty() ) {
+                    vertice = fila.front();
+                    fila.pop();
+                    if( count(visitados.begin(), visitados.end(), vertice) == 0 ) {
+                        visitados.push_back(vertice);
+                        for ( int i = 0; i < matriz[vertice].size(); i++ ) {
+                            if ( matriz[vertice][i] == 1 ) {
+                                fila.push(i);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return visitados;
+}
+
 int main() {
     char dirigidoResposta;
     bool dirigido;
@@ -104,7 +146,7 @@ int main() {
         cout << endl;
     }
 
-    vector<int> exemplo = depth_search(matriz, 0);
+    vector<int> exemplo = breadth_search(matriz, 0);
     for (int i = 0; i < exemplo.size(); i++) {
         cout << exemplo[i] << endl;
     }
