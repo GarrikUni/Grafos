@@ -3,6 +3,7 @@
 #include <stack>
 #include <queue>
 #include <algorithm>
+#include <limits>
 using namespace std;
 
 vector<int> depth_search ( vector<vector<int>> matriz, int comecoXY ) {
@@ -102,7 +103,7 @@ int main() {
         return 0;
     }
 
-    cout << "O arco será Dirigido(S -> sim, qualquer outra letra -> nao):\n";
+    cout << "O arco será Dirigido?(s ou S -> sim, qualquer outro caractere -> nao):\n";
     cin >> dirigidoResposta;
 
     if( dirigidoResposta == 83 || dirigidoResposta == 115 ) {
@@ -122,11 +123,15 @@ int main() {
         cout << "Aresta (origem destino): ";
         if (!(cin >> origem >> destino)) {
             cout << "Entrada invalida detectada. Encerrando...\n";
+            cin.clear(); 
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             break;
         }
 
         if (origem < 0 || origem >= numVertices || destino < 0 || destino >= numVertices) {
             cout << "Vertice fora do intervalo permitido. Encerrando...\n";
+            cin.clear(); 
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             break;
         }
 
@@ -147,9 +152,21 @@ int main() {
         cout << endl;
     }
 
-    vector<int> exemplo = breadth_search(matriz, 0);
-    for (int i = 0; i < exemplo.size(); i++) {
-        cout << exemplo[i] << endl;
+    char metodoPercorrer;
+
+    cout << "Qual será o método para percorrer?(b ou B -> BFS, qualquer outro caractere -> DFS)\n";
+    cin >> metodoPercorrer;
+
+    if( metodoPercorrer == 66 || metodoPercorrer == 98 ) {
+        vector<int> exemploBfs = breadth_search(matriz, 0);
+        for (int i = 0; i < exemploBfs.size(); i++) {
+            cout << exemploBfs[i] << endl;
+        }
+    } else {
+        vector<int> exemploDfs = depth_search(matriz, 0);
+        for (int i = 0; i < exemploDfs.size(); i++) {
+            cout << exemploDfs[i] << endl;
+        }
     }
 
     return 0;
