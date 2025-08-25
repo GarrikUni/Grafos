@@ -4,6 +4,7 @@
 #include <queue>
 #include <algorithm>
 #include <limits>
+#include <cstdlib> // Para system()
 using namespace std;
 
 // 1-Melhorar usabilidade
@@ -97,6 +98,35 @@ vector<int> breadth_search ( vector<vector<int>> matriz, int comecoXY ) {
     return visitados;
 }
 
+void percorrer(vector<vector<int>> matriz, int numVertices){
+    char metodo;
+    int inicio=0;
+    cout << "Qual será o método para percorrer?(b ou B -> BFS, qualquer outro caractere -> DFS)\n";
+    cin >> metodo;
+
+    cout << "Qual o vertice inicial para percorrer?(entre 1 e " << numVertices << ")\n";
+    cin >> inicio;
+
+    while ( inicio <= 0 || inicio >= numVertices ) {
+        cout << "Vertice inválido (válido de 1 até " << numVertices << ")\n";
+        cin >> inicio;
+    }
+    
+    cout << endl;
+
+    if( metodo == 66 || metodo == 98 ) {
+        vector<int> exemploBfs = breadth_search(matriz, inicio-1);
+        for (int i = 0; i < exemploBfs.size(); i++) {
+            cout << exemploBfs[i]+1 << endl;
+        }
+    } else {
+        vector<int> exemploDfs = depth_search(matriz, inicio-1);
+        for (int i = 0; i < exemploDfs.size(); i++) {
+            cout << exemploDfs[i]+1 << endl;
+        }
+    }
+}
+
 int main() {
     char dirigidoResposta;
     bool dirigido;
@@ -158,32 +188,43 @@ int main() {
         }
         cout << endl;
     }
+    int menu=1;
+    system("clear");
 
-    char metodoPercorrer;
-    int verticeInicial = 0;
-
-    cout << "Qual será o método para percorrer?(b ou B -> BFS, qualquer outro caractere -> DFS)\n";
-    cin >> metodoPercorrer;
-
-    cout << "Qual o vertice inicial para percorrer?(entre 1 e " << numVertices << ")\n";
-    cin >> verticeInicial;
-
-    while ( verticeInicial <= 0 || verticeInicial >= numVertices ) {
-        cout << "Vertice inválido (válido de 1 até " << numVertices << ")\n";
-        cin >> verticeInicial;
+    while(true){
+    cout << "------------------------------------------------------------------------------------------------------\n";
+    cout << "Escolha uma opcao de interacao com o grafo:\n\n";
+    cout << "0. limpar o console\n";
+    cout << "1. mostrar a matriz de adjacencia\n";
+    cout << "2. percorrer e printar os vertices em ordem de visitado\n";
+    cout << "3. sair\n";
+    cout << "------------------------------------------------------------------------------------------------------\n";
+    if (!(cin >> menu)) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        menu=-1;
+    }
+    switch(menu){
+    case 0:
+        system("clear");
+        break;
+    case 1:
+        cout << "Matriz " << numVertices << "x" << numVertices << ":" << endl;
+        for (int i = 0; i < numVertices; ++i) {
+            for (int j = 0; j < numVertices; ++j) {
+                cout << matriz[i][j] << " ";
+            }
+            cout << endl;
+        }
+        break;
+    case 2:
+        percorrer(matriz, numVertices);
+        break;
+    case 3:
+        return 0;
+    default:
+        cout << "entrada invalida\n\n\n\n";
+    }
     }
 
-    if( metodoPercorrer == 66 || metodoPercorrer == 98 ) {
-        vector<int> exemploBfs = breadth_search(matriz, verticeInicial-1);
-        for (int i = 0; i < exemploBfs.size(); i++) {
-            cout << exemploBfs[i]+1 << endl;
-        }
-    } else {
-        vector<int> exemploDfs = depth_search(matriz, verticeInicial-1);
-        for (int i = 0; i < exemploDfs.size(); i++) {
-            cout << exemploDfs[i]+1 << endl;
-        }
-    }
-
-    return 0;
 }
