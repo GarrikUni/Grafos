@@ -127,6 +127,7 @@ vector<vector<int>> transpor ( vector<vector<int>> matriz ) {
 bool verifica_conectividade ( vector<vector<int>> matriz, bool dirigido ) {
     vector<int> visitados;
     visitados = busca_profundidade(matriz, 0);
+
     if( !dirigido ) {
         if ( visitados.size() == matriz.size() ) { // Se o grafo é não dirigido e percorre todos os vertices durante a DFS, o grafo é conexo
             return true;
@@ -208,8 +209,8 @@ void percorrer(vector<vector<int>> matriz, int numVertices){
 
 void imprimir_matriz ( vector<vector<int>> matriz, int tam )  {
     cout << "Matriz " << tam << "x" << tam << ":" << endl;
-    cout << "    ";
-    for (int i = 0; i < tam; ++i) {
+    cout << "  ";
+    for (int i = 0; i < tam+1; ++i) {
         cout << setw(4) << i;
     }
     cout << endl;
@@ -319,9 +320,9 @@ int main() {
             break;
         case 4:
             if(verifica_conectividade(matriz, dirigido))
-                cout << "Não conexo\n";
-            else
                 cout << "Conexo\n";
+            else
+                cout << "Não Conexo\n";
             break;
         case 99:
             cout << "Saindo.\n\n\n";
