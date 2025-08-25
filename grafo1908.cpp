@@ -4,6 +4,7 @@
 #include <queue>
 #include <algorithm>
 #include <limits>
+#include <iomanip> // para setw, melhora a amostragem do console
 #include <cstdlib> // Para system()
 using namespace std;
 
@@ -123,11 +124,11 @@ vector<vector<int>> transpor ( vector<vector<int>> matriz ) {
     return matriz_t; // retorna a matriz transposta
 }
 
-bool verifica_conectividade ( vector<vector<int>> matriz, bool direcionado ) {
+bool verifica_conectividade ( vector<vector<int>> matriz, bool dirigido ) {
     vector<int> visitados;
     visitados = busca_profundidade(matriz, 0);
-    if( !direcionado ) {
-        if ( visitados.size() == matriz.size() ) { // Se o grafo é não direcionado e percorre todos os vertices durante a DFS, o grafo é conexo
+    if( !dirigido ) {
+        if ( visitados.size() == matriz.size() ) { // Se o grafo é não dirigido e percorre todos os vertices durante a DFS, o grafo é conexo
             return true;
         } else {
             return false;
@@ -135,16 +136,45 @@ bool verifica_conectividade ( vector<vector<int>> matriz, bool direcionado ) {
     }
 
     if ( visitados.size() != matriz.size() ) {
-        return false; // Se o grafo é direcionado e não percorre todos os vertices durante a DFS, o grafo é não conexo
+        return false; // Se o grafo é dirigido e não percorre todos os vertices durante a DFS, o grafo é não conexo
     }
     vector<vector<int>> matriz_t = transpor(matriz);
     visitados = busca_profundidade(matriz_t, 0);
     if ( visitados.size() != matriz_t.size() ) {
-        return false; // Se o grafo é direcionado e não percorre todos os vertices durante a DFS, o grafo é não conexo
+        return false; // Se o grafo é dirigido e não percorre todos os vertices durante a DFS, o grafo é não conexo
     }
 
     
     return true;
+}
+
+vector<vector<int>> fecho_transitivo_distancia(vector<vector<int>> &matriz, int tamanho) {
+    vector<vector<int>> matriz_ftd(tamanho, vector<int>(tamanho, -1));
+
+    for (int i = 0; i < tamanho; ++i) {
+        for (int j = 0; j < tamanho; ++j) {
+            if(i==j){
+                matriz_ftd[i][j] = 0;
+            } else if ( matriz [i][j] == 1 ) {
+                matriz_ftd[i][j] = 1;
+            }
+        }
+    }
+
+    for (int k = 0; k < tamanho; ++k) {
+        for (int i = 0; i < tamanho; ++i) {
+            for (int j = 0; j < tamanho; ++j) {
+                if (matriz_ftd[i][k] != -1 && matriz_ftd[k][j] != -1) {
+                    int nova_dist = matriz_ftd[i][k] + matriz_ftd[k][j];
+                    if (matriz_ftd[i][j] == -1 || nova_dist < matriz_ftd[i][j]) {
+                        matriz_ftd[i][j] = nova_dist;
+                    }
+                }
+            }
+        }
+    }
+
+    return matriz_ftd;
 }
 
 void percorrer(vector<vector<int>> matriz, int numVertices){
@@ -173,6 +203,25 @@ void percorrer(vector<vector<int>> matriz, int numVertices){
         for (int i = 0; i < exemploDfs.size(); i++) {
             cout << exemploDfs[i]+1 << endl;
         }
+    }
+}
+
+void imprimir_matriz ( vector<vector<int>> matriz, int tam )  {
+    cout << "Matriz " << tam << "x" << tam << ":" << endl;
+    cout << "    ";
+    for (int i = 0; i < tam; ++i) {
+        cout << setw(4) << i;
+    }
+    cout << endl;
+    for (int i = 0; i < tam; ++i) {
+        cout << setw(4) << i+1 <<"->";
+        for (int j = 0; j < tam; ++j) {
+            if (matriz[i][j] == -1)
+                cout << setw(4) << ".";
+            else
+                cout << setw(4) << matriz[i][j];
+        }
+        cout << endl;
     }
 }
 
@@ -246,7 +295,9 @@ int main() {
         cout << "0. limpar o console\n";
         cout << "1. mostrar a matriz de adjacencia\n";
         cout << "2. percorrer e printar os vertices em ordem de visitado\n";
-        cout << "3. sair\n";
+        cout << "3. TESTE FTD\n";
+        cout << "4. TESTE Conectividade\n";
+        cout << "99. sair\n";
         cout << "------------------------------------------------------------------------------------------------------\n";
         if (!(cin >> menu)) {
             cin.clear();
@@ -258,18 +309,22 @@ int main() {
             system("clear");
             break;
         case 1:
-            cout << "Matriz " << numVertices << "x" << numVertices << ":" << endl;
-            for (int i = 0; i < numVertices; ++i) {
-                for (int j = 0; j < numVertices; ++j) {
-                    cout << matriz[i][j] << " ";
-                }
-                cout << endl;
-            }
+            imprimir_matriz(matriz, matriz.size());
             break;
         case 2:
             percorrer(matriz, numVertices);
             break;
         case 3:
+            imprimir_matriz(fecho_transitivo_distancia(matriz, matriz.size()), numVertices);
+            break;
+        case 4:
+            if(verifica_conectividade(matriz, dirigido))
+                cout << "Não conexo\n";
+            else
+                cout << "Conexo\n";
+            break;
+        case 99:
+            cout << "Saindo.\n\n\n";
             return 0;
         default:
             cout << "entrada invalida\n\n\n\n";
