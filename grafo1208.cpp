@@ -6,6 +6,13 @@
 #include <limits>
 using namespace std;
 
+// 1-Melhorar usabilidade
+
+// 2-Altera os vertices para terem id e dado
+// 3-Adicionar a pesquisa, para verificar se um vertice existe
+
+// 4-Verificar se um grafo é conexo
+
 vector<int> depth_search ( vector<vector<int>> matriz, int comecoXY ) {
     vector<int> visitados;
     stack<int> pilha;
@@ -114,7 +121,7 @@ int main() {
 
     vector<vector<int>> matriz(numVertices, vector<int>(numVertices, 0)); // Inicia a matriz com zero em todas as posições
 
-    cout << "Digite pares de vertices (origem destino) entre 0 e " << numVertices - 1 << ".\n";
+    cout << "Digite pares de vertices (origem destino) entre 1 e " << numVertices << ".\n";
     cout << "Digite um valor invalido para encerrar.\n";
 
     while (true) {
@@ -128,7 +135,7 @@ int main() {
             break;
         }
 
-        if (origem < 0 || origem >= numVertices || destino < 0 || destino >= numVertices) {
+        if (origem < 1 || origem > numVertices || destino < 1 || destino > numVertices) {
             cout << "Vertice fora do intervalo permitido. Encerrando...\n";
             cin.clear(); 
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -136,10 +143,10 @@ int main() {
         }
 
         if ( dirigido ) {
-            matriz[origem][destino] = 1;
+            matriz[origem-1][destino-1] = 1;
         } else {
-            matriz[origem][destino] = 1;
-            matriz[destino][origem] = 1;
+            matriz[origem-1][destino-1] = 1;
+            matriz[destino-1][origem-1] = 1;
         }
         
     }
@@ -153,19 +160,28 @@ int main() {
     }
 
     char metodoPercorrer;
+    int verticeInicial = 0;
 
     cout << "Qual será o método para percorrer?(b ou B -> BFS, qualquer outro caractere -> DFS)\n";
     cin >> metodoPercorrer;
 
+    cout << "Qual o vertice inicial para percorrer?(entre 1 e " << numVertices << ")\n";
+    cin >> verticeInicial;
+
+    while ( verticeInicial <= 0 || verticeInicial >= numVertices ) {
+        cout << "Vertice inválido (válido de 1 até " << numVertices << ")\n";
+        cin >> verticeInicial;
+    }
+
     if( metodoPercorrer == 66 || metodoPercorrer == 98 ) {
-        vector<int> exemploBfs = breadth_search(matriz, 0);
+        vector<int> exemploBfs = breadth_search(matriz, verticeInicial-1);
         for (int i = 0; i < exemploBfs.size(); i++) {
-            cout << exemploBfs[i] << endl;
+            cout << exemploBfs[i]+1 << endl;
         }
     } else {
-        vector<int> exemploDfs = depth_search(matriz, 0);
+        vector<int> exemploDfs = depth_search(matriz, verticeInicial-1);
         for (int i = 0; i < exemploDfs.size(); i++) {
-            cout << exemploDfs[i] << endl;
+            cout << exemploDfs[i]+1 << endl;
         }
     }
 
