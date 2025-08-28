@@ -133,7 +133,7 @@ vector<int> busca_largura_completa ( const vector<vector<int>> &matriz, int come
     
     fila.push(comecoXY);
     while ( !fila.empty() ) {
-        vertice = fila.front(); // front() retorna o elemento no topo, mas não remove
+        vertice = fila.front(); // front() retorna o elemento na frente, mas não remove
         fila.pop();  // pop() remove o elemento na frente, mas não o retorna
         if( count(visitados.begin(), visitados.end(), vertice) == 0 ) {
             visitados.push_back(vertice);
@@ -282,6 +282,32 @@ void imprimir_matriz ( vector<vector<int>> matriz )  {
     }
 }
 
+void adicionarArestas ( Grafo &grafo ) {
+    cout << "Digite pares de vertices (origem destino) entre 1 e " << grafo.numVertices << ".\n";
+    cout << "Digite um valor invalido para encerrar.\n";
+
+    while (true) {
+        int origem, destino;
+
+        cout << "Aresta (origem destino): ";
+        if (!(cin >> origem >> destino)) {
+            cout << "Entrada invalida detectada. Encerrando...\n";
+            cin.clear(); 
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            break;
+        }
+
+        if (origem < 1 || origem > grafo.numVertices || destino < 1 || destino > grafo.numVertices) {
+            cout << "Vertice fora do intervalo permitido. Encerrando...\n";
+            cin.clear(); 
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            break;
+        }
+
+        grafo.adicionarAresta(origem-1, destino-1);
+    }
+}
+
 int main() {
     char dirigidoResposta;
     bool dirigido;
@@ -343,6 +369,7 @@ int main() {
         cout << "4. Verificar conectividade(Ainda nao retorna subgrafos)\n";
         cout << "5. Adicionar Vertice\n";
         cout << "6. Remover Vertice\n";
+        cout << "7. Adicionar Arestas\n";
         cout << "99. sair\n";
         cout << "------------------------------------------------------------------------------------------------------\n";
         if (!(cin >> menu)) {
@@ -393,6 +420,9 @@ int main() {
                 break;
             }
             grafo.removerVertice(vertice);
+            break;
+        case 7:
+            adicionarArestas(grafo);
             break;
         case 99:
             cout << "Saindo.\n\n\n";
