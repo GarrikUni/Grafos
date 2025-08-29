@@ -262,6 +262,34 @@ vector<vector<int>> fecho_transitivo_distancia( const vector<vector<int>> &matri
     return matriz_ftd;
 }
 
+vector<vector<int>> subgrafos_forte ( const Grafo &grafo ) {
+    vector<vector<int>> matriz_ftd = fecho_transitivo_distancia(grafo.matriz);
+    vector<vector<int>> subgrafos;
+
+    int vertices_em_subgrafos = 0;
+    int ciclo = 0;
+
+    while ( vertices_em_subgrafos < grafo.numVertices ) {
+        subgrafos.push_back(vector<int>());
+
+        for (int j = 0; j < matriz_ftd.size(); j++) {
+            if ( matriz_ftd[ciclo][j] != -1 && matriz_ftd[j][ciclo]!= -1 && count(subgrafos[ciclo].begin(), subgrafos[ciclo].end(), j) == 0 ) {
+                subgrafos[ciclo].push_back(j);
+            }
+        }
+
+        vertices_em_subgrafos += subgrafos[ciclo].size();
+        // vertices_em_subgrafos = 0;
+        // for (size_t i = 0; i < subgrafos.size(); i++) {
+        //     vertices_em_subgrafos += subgrafos[ciclo].size();
+        // }
+
+        ciclo++;
+    }
+    
+    return subgrafos;
+}
+
 void imprimir_matriz ( vector<vector<int>> matriz )  {
     int tam = matriz.size();
     cout << "Matriz " << tam << "x" << tam << ":" << endl;
@@ -312,6 +340,7 @@ int main() {
     char dirigidoResposta;
     bool dirigido;
     int numVertices;
+    vector<vector<int>> sub;
 
     cout << "Digite numero de vertices:\n";
     cin >> numVertices;
@@ -395,6 +424,15 @@ int main() {
                 cout << "Conexo\n";
             else
                 cout << "Não Conexo\n";
+                sub = subgrafos_forte(grafo);
+                for (int i=0; i<sub.size(); i++) {
+                    cout << "{ ";
+                    for (int j=0; j<sub[i].size(); j++) {
+                        cout << sub[i][j]+1;
+                        if(j<sub[i].size()-1)cout << ", ";
+                    }
+                    cout << " }\n";
+                }
             break;
         case 5:
             grafo.adicionarVertice();
