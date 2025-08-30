@@ -341,6 +341,7 @@ int main() {
     bool dirigido;
     int numVertices;
     vector<vector<int>> sub;
+    vector<vector<int>> matriz_ft;
 
     cout << "Digite numero de vertices:\n";
     cin >> numVertices;
@@ -395,10 +396,11 @@ int main() {
         cout << "1. mostrar a matriz de adjacencia\n";
         cout << "2. percorrer e printar os vertices em ordem de visitado\n";
         cout << "3. Imprimir Matriz FTD completa\n";
-        cout << "4. Verificar conectividade(Ainda nao retorna subgrafos)\n";
-        cout << "5. Adicionar Vertice\n";
-        cout << "6. Remover Vertice\n";
-        cout << "7. Adicionar Arestas\n";
+        cout << "4. Imprimir Matriz FTD/FTI Vertice\n";
+        cout << "5. Verificar conectividade(Ainda nao retorna subgrafos)\n";
+        cout << "6. Adicionar Vertice\n";
+        cout << "7. Remover Vertice\n";
+        cout << "8. Adicionar Arestas\n";
         cout << "99. sair\n";
         cout << "------------------------------------------------------------------------------------------------------\n";
         if (!(cin >> menu)) {
@@ -420,6 +422,47 @@ int main() {
             imprimir_matriz( fecho_transitivo_distancia(grafo.matriz) );
             break;
         case 4:
+            cout << "Digite um Vertice entre 1 e " << grafo.numVertices << ".\n";
+            cout << "Digite um valor invalido para voltar.\n";
+
+            int vertice_ft;
+
+            cout << "Vertice: ";
+            if (!( cin >> vertice_ft )) {
+                cout << "Entrada invalida detectada.\n";
+                cin.clear(); 
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                break;
+            }
+
+            if ( vertice_ft < 1 || vertice_ft > grafo.numVertices ) {
+                cout << "Vertice fora do intervalo permitido.\n";
+                cin.clear(); 
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                break;
+            }
+
+            matriz_ft = fecho_transitivo_distancia(grafo.matriz);
+
+            char diretoResposta;
+
+            cout << "Você quer um FTD?(s ou S -> sim, qualquer outro caractere -> nao, FTI):\n";
+            cin >> diretoResposta;
+
+            if( diretoResposta == 83 || diretoResposta == 115 ) {
+                for (int i=0; i<matriz_ft.size(); i++) {
+                    cout << matriz_ft[vertice_ft-1][i] << " ";
+                }
+                cout << endl;
+            } else {
+                for (int i=0; i<matriz_ft.size(); i++) {
+                    cout << matriz_ft[i][vertice_ft-1] << " ";
+                }
+                cout << endl;
+            }
+
+            break;
+        case 5:
             if( verifica_conectividade(grafo.matriz, grafo.dirigido) )
                 cout << "Conexo\n";
             else
@@ -434,10 +477,10 @@ int main() {
                     cout << " }\n";
                 }
             break;
-        case 5:
+        case 6:
             grafo.adicionarVertice();
             break;
-        case 6:
+        case 7:
             cout << "Digite um Vertice entre 1 e " << grafo.numVertices << ".\n";
             cout << "Digite um valor invalido para voltar.\n";
 
@@ -459,7 +502,7 @@ int main() {
             }
             grafo.removerVertice(vertice);
             break;
-        case 7:
+        case 8:
             adicionarArestas(grafo);
             break;
         case 99:
