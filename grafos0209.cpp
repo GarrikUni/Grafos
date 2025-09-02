@@ -11,6 +11,7 @@ using namespace std;
 struct Grafo {
     int numVertices;
     bool dirigido;
+    bool geradoraMinima;
     vector<vector<int>> matriz; // matriz de adjacência
 
     Grafo(int n, bool d = false) { // Construtor recebe numero de vertices, e se é dirigido
@@ -24,6 +25,24 @@ struct Grafo {
             matriz[origem][destino] = 1;
             if (!dirigido) {
                 matriz[destino][origem] = 1;
+            }
+        }
+    }
+
+    void adicionarAresta(int origem, int destino, int peso) {
+        if ( origem!=destino ) {
+            matriz[origem][destino] = peso;
+            if (!dirigido) {
+                matriz[destino][origem] = peso;
+            }
+        }
+    }
+
+    void removerAresta(int origem, int destino) {
+        if ( origem!=destino ) {
+            matriz[origem][destino] = 0;
+            if (!dirigido) {
+                matriz[destino][origem] = 0;
             }
         }
     }
@@ -274,15 +293,16 @@ vector<vector<int>> subgrafos_forte ( const Grafo &grafo ) {
 
         for (int j = 0; j < matriz_ftd.size(); j++) {
             if ( matriz_ftd[ciclo][j] != -1 && matriz_ftd[j][ciclo]!= -1 && count(subgrafos[ciclo].begin(), subgrafos[ciclo].end(), j) == 0 ) {
+                if(j==5){cout << "6\n";} 
                 subgrafos[ciclo].push_back(j);
             }
         }
 
-        vertices_em_subgrafos += subgrafos[ciclo].size();
-        // vertices_em_subgrafos = 0;
-        // for (size_t i = 0; i < subgrafos.size(); i++) {
-        //     vertices_em_subgrafos += subgrafos[ciclo].size();
-        // }
+        // vertices_em_subgrafos += subgrafos[ciclo].size();
+        vertices_em_subgrafos = 0;
+        for (size_t i = 0; i < subgrafos.size(); i++) {
+            vertices_em_subgrafos += subgrafos[ciclo].size();
+        }
 
         ciclo++;
     }
@@ -310,6 +330,22 @@ void imprimir_matriz ( vector<vector<int>> matriz )  {
     }
 }
 
+int perguntaPeso() {
+    int peso;
+    while(true){
+    cout << "Qual sera o peso desta aresta(o peso deve ser maior que zero)? ";
+        if (!(cin >> peso)) {
+            cout << "Entrada invalida detectada. Tente novamente.\n";
+            cin.clear(); // limpa o erro de cin
+            cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // descarta a linha
+        } else if (peso < 1) {
+            cout << "Peso deve ser maior que zero. Tente novamente.\n";
+        } else {
+            return peso;// entrada válida
+        }
+    }
+}
+
 void adicionarArestas ( Grafo &grafo ) {
     cout << "Digite pares de vertices (origem destino) entre 1 e " << grafo.numVertices << ".\n";
     cout << "Digite um valor invalido para encerrar.\n";
@@ -325,16 +361,44 @@ void adicionarArestas ( Grafo &grafo ) {
             break;
         }
 
-        if (origem < 1 || origem > grafo.numVertices || destino < 1 || destino > grafo.numVertices) {
+        if (origem < 1 || origem > grafo.numVertices || destino < 1 || destino > grafo.numVertices || origem==destino) {
             cout << "Vertice fora do intervalo permitido. Encerrando...\n";
             cin.clear(); 
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             break;
         }
 
-        grafo.adicionarAresta(origem-1, destino-1);
+        if(!grafo.geradoraMinima){
+            grafo.adicionarAresta(origem-1, destino-1);
+        } else {
+            grafo.adicionarAresta(origem-1, destino-1, perguntaPeso());
+        }
+            
     }
 }
+
+void removerArestas ( Grafo &grafo ) {
+    cout << "Digite pares de vertices (origem destino) entre 1 e " << grafo.numVertices << ".\n";
+    cout << "Digite um valor invalido para voltar para o menu.\n";
+
+        int origem, destino;
+
+        cout << "Aresta (origem destino): ";
+        if (!(cin >> origem >> destino)) {
+            cout << "Entrada invalida detectada. Encerrando...\n";
+            cin.clear(); 
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+
+        if (origem < 1 || origem > grafo.numVertices || destino < 1 || destino > grafo.numVertices || origem==destino) {
+            cout << "Vertice fora do intervalo permitido. Encerrando...\n";
+            cin.clear(); 
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+
+        grafo.removerAresta(origem-1, destino-1);
+}
+
 void lerMatrizCompleta(Grafo& grafo) {
     cout << "Digite a matriz de adjacencia completa, linha por linha, separando os valores por espaco ou virgula.\n";
     cout << "A matriz deve ser " << grafo.numVertices << "x" << grafo.numVertices << ".\n";
@@ -359,6 +423,60 @@ void lerMatrizCompleta(Grafo& grafo) {
     cout << "Matriz lida com sucesso.\n";
 }
 
+bool parExiste(const vector<pair<int, int> >& vetor, pair<int, int> alvo) {
+    for (vector<pair<int, int> >::const_iterator it = vetor.begin(); it != vetor.end(); ++it) {
+        if (it->first == alvo.first && it->second == alvo.second) {
+            return true;
+        }
+    }
+    return false;
+}
+
+vector<pair<int, int>> AGV ( Grafo &grafo ) {
+    vector<vector<int>> matriz = grafo.matriz;
+    vector<pair<int, int>> agv = {};
+    vector<int> vertices_conectados;
+    pair<int, int> pos_menor_custo;
+    int menor_custo = numeric_limits<int>::max();
+
+    for (int i = 0; i < grafo.numVertices; i++) {
+        for (int j = 1; j < grafo.numVertices; j++) {
+            if (j > i) { // Lidar somente com itens acima da diagonal principal, evita duplica
+                if ( matriz[i][j] < menor_custo ) {
+                    pos_menor_custo = make_pair (i, j);
+                    menor_custo = matriz[i][j];
+                }
+            }
+        }
+    }
+    agv.push_back(pos_menor_custo);
+    vertices_conectados.push_back(pos_menor_custo.first);
+    vertices_conectados.push_back(pos_menor_custo.second);
+
+    while ( agv.size() < grafo.numVertices-1 ) { // Faz até o numero de arestas ser numVertices-1;
+        menor_custo = numeric_limits<int>::max(); // Reseta o menor custo
+        for (int i = 0; i < vertices_conectados.size(); i++) {
+            for (int j = 0; j < matriz.size(); j++) {
+                if ( vertices_conectados[i] != j ) { // não inclui o vetor pincipal
+                    if ( matriz[vertices_conectados[i]][j] < menor_custo && parExiste( agv, {vertices_conectados[i],j} ) ) {
+                        pos_menor_custo = make_pair (vertices_conectados[i], j);
+                        menor_custo = matriz[vertices_conectados[i]][j];
+                    }
+                }
+                
+            }
+        }
+        agv.push_back(pos_menor_custo);
+        if ( count(vertices_conectados.begin(), vertices_conectados.end(), pos_menor_custo.first) == 0 ){
+            vertices_conectados.push_back(pos_menor_custo.first);
+        } else {
+            vertices_conectados.push_back(pos_menor_custo.second);
+        }
+    }
+
+    return agv;
+}
+
 int main() {
     char dirigidoResposta, formaEntrada;
     bool dirigido;
@@ -379,6 +497,11 @@ int main() {
     dirigido = (dirigidoResposta == 'S' || dirigidoResposta == 's');
 
     Grafo grafo(numVertices, dirigido);
+    if ( !grafo.dirigido ) {
+        cout << "O grafo sera Matriz Geradora Mínima? (s/S para sim, qualquer outro caractere para nao):\n";
+        cin >> dirigidoResposta;
+        grafo.geradoraMinima = (dirigidoResposta == 'S' || dirigidoResposta == 's');
+    }
 
     cout << "\nComo voce deseja inserir as arestas?\n";
     cout << "1. Aresta por aresta\n";
@@ -512,6 +635,15 @@ int main() {
             break;
         case 8:
             adicionarArestas(grafo);
+            break;
+        case 9:
+            removerArestas(grafo);
+            break;
+        case 10:
+            vector<pair<int, int> > ex = AGV(grafo);
+            for (vector<pair<int, int> >::const_iterator it = ex.begin(); it != ex.end(); ++it) {
+                cout << "(" << it->first << ", " << it->second << ")" << endl;
+            }
             break;
         case 99:
             cout << "Saindo.\n\n\n";
