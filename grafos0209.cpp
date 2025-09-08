@@ -425,7 +425,7 @@ void lerMatrizCompleta(Grafo& grafo) {
 
 bool parExiste(const vector<pair<int, int> >& vetor, pair<int, int> alvo) {
     for (vector<pair<int, int> >::const_iterator it = vetor.begin(); it != vetor.end(); ++it) {
-        if (it->first == alvo.first && it->second == alvo.second) {
+        if ( ( it->first == alvo.first && it->second == alvo.second ) || (it->second == alvo.first && it->first == alvo.second) ) {
             return true;
         }
     }
@@ -442,7 +442,7 @@ vector<pair<int, int>> AGV ( Grafo &grafo ) {
     for (int i = 0; i < grafo.numVertices; i++) {
         for (int j = 1; j < grafo.numVertices; j++) {
             if (j > i) { // Lidar somente com itens acima da diagonal principal, evita duplica
-                if ( matriz[i][j] < menor_custo ) {
+                if ( matriz[i][j] < menor_custo && matriz[i][j] > 0 ) {
                     pos_menor_custo = make_pair (i, j);
                     menor_custo = matriz[i][j];
                 }
@@ -457,13 +457,14 @@ vector<pair<int, int>> AGV ( Grafo &grafo ) {
         menor_custo = numeric_limits<int>::max(); // Reseta o menor custo
         for (int i = 0; i < vertices_conectados.size(); i++) {
             for (int j = 0; j < matriz.size(); j++) {
-                if ( vertices_conectados[i] != j ) { // não inclui o vetor pincipal
-                    if ( matriz[vertices_conectados[i]][j] < menor_custo && parExiste( agv, {vertices_conectados[i],j} ) ) {
-                        pos_menor_custo = make_pair (vertices_conectados[i], j);
-                        menor_custo = matriz[vertices_conectados[i]][j];
+                if ( vertices_conectados[i] != j ) { // não inclui o vetor principal
+                    if( matriz[vertices_conectados[i]][j] > 0 ) { // o valor da matriz deve ser maior que 0 para ter uma conexao
+                        if ( matriz[vertices_conectados[i]][j] < menor_custo && !parExiste( agv, {vertices_conectados[i],j} ) ) {
+                            pos_menor_custo = make_pair (vertices_conectados[i], j);
+                            menor_custo = matriz[vertices_conectados[i]][j];
+                        }
                     }
                 }
-                
             }
         }
         agv.push_back(pos_menor_custo);
@@ -483,6 +484,7 @@ int main() {
     int numVertices;
     vector<vector<int>> sub;
     vector<vector<int>> matriz_ft;
+    vector<pair<int, int> > ex;
 
     cout << "Digite o numero de vertices:\n";
     cin >> numVertices;
@@ -532,6 +534,8 @@ int main() {
         cout << "6. Adicionar Vertice\n";
         cout << "7. Remover Vertice\n";
         cout << "8. Adicionar Arestas\n";
+        cout << "9. Remover Arestas\n";
+        cout << "10. Exibe as conexões de AVG\n";
         cout << "99. Sair\n";
         cout << "------------------------------------------------------------------------------------------------------\n";
         if (!(cin >> menu)) {
@@ -640,9 +644,9 @@ int main() {
             removerArestas(grafo);
             break;
         case 10:
-            vector<pair<int, int> > ex = AGV(grafo);
+            ex = AGV(grafo);
             for (vector<pair<int, int> >::const_iterator it = ex.begin(); it != ex.end(); ++it) {
-                cout << "(" << it->first << ", " << it->second << ")" << endl;
+                cout << "(" << it->first+1 << ", " << it->second+1 << ")" << endl; // +1 para auxiliar a visualização para o usuário
             }
             break;
         case 99:
