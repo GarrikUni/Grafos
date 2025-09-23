@@ -8,6 +8,22 @@
 #include <cstdlib> // Para system()
 using namespace std;
 
+/*
+COLORAÇÃO
+
+1-PASSO / 1ºVERTICE A COLORIR
+    escolher o vertice com o maior numero de ligações
+
+2-PASSO 
+    escolher o vertice que, no momento, for adjacente ao maior número de cores diferentes(grau de saturação)
+    REPETIR ESSE PASSO ATÉ COLORIR TODOS OS VÉRTICES
+
+Nota:
+Numerar as cores por ordem crescente (tabela de cores)
+Escolhido um vértice para colorir, seleccionar sempre a cor admissível com número mais baixo.
+
+*/
+
 struct Grafo {
     int numVertices;
     bool dirigido;
@@ -83,6 +99,7 @@ struct Grafo {
             matriz[i].erase( matriz[i].begin()+v ); // apaga a coluna equivalente do vertice de todos os outros vertices
         }
         identificadores.erase(identificadores.begin()+v);
+        imprimirIdentificadores();
         numVertices--;
         return true;
     }
@@ -368,7 +385,7 @@ int perguntaPeso() {
 }
 
 void adicionarArestas ( Grafo &grafo ) {
-    cout << "Digite um par de vertices (Char do vertice origem e Char do vertice destino) entre os vertices existentes (";
+    cout << "Digite um par de vertices (Char do vertice origem e Char do vertice destino) entre os vertices existentes ( ";
     grafo.imprimirIdentificadores();
     cout << ").\n";
     cout << "Digite um valor invalido para encerrar.\n";
@@ -382,7 +399,7 @@ void adicionarArestas ( Grafo &grafo ) {
         origem = grafo.indiceDoVertice(origemNome);
         destino = grafo.indiceDoVertice(destinoNome);
         if (origem == -1 || destino == -1) {
-            cout << "Um dos identificadores não existe.\n";
+            cout << "Um dos identificadores não existe. \nVoltando para o menu.\n";
             break;
         }
 
@@ -411,7 +428,7 @@ void adicionarArestas ( Grafo &grafo ) {
 }
 
 void removerArestas ( Grafo &grafo ) {
-    cout << "Digite um par de vertices (Char do vertice origem e Char do vertice destino) entre os vertices existentes (";
+    cout << "Digite um par de vertices (Char do vertice origem e Char do vertice destino) entre os vertices existentes ( ";
         grafo.imprimirIdentificadores();
     cout << ").\n";
     cout << "Digite um valor invalido para voltar para o menu.\n";
@@ -438,6 +455,7 @@ void removerArestas ( Grafo &grafo ) {
         cout << "Vertice fora do intervalo permitido. Encerrando...\n";
         cin.clear(); 
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        return;
     }
 
     grafo.removerAresta(origem-1, destino-1);
@@ -660,7 +678,7 @@ int main() {
             grafo.adicionarVertice();
             break;
         case 7:
-            cout << "Digite um vertice entre os vertices existentes (";
+            cout << "Digite um vertice entre os vertices existentes ( ";
             grafo.imprimirIdentificadores();
             cout << ").\n";
             cout << "Digite um valor invalido para voltar.\n";
