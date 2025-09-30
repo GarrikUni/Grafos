@@ -9,8 +9,16 @@
 using namespace std;
 
 /*
-COLORAÇÃO
+A FAZER
+- NA OPÇÃO DE PERCORRER PARA UTILIZAR BFS E DFS, PRECISA UTILIZAR OS IDENTIFICADORES EM VEZ DE NÚMEROS
+- AO ADICIONAR UM VÉRTICE, PRECISA MUDAR PARA PEDIR O IDENTIFICADOR, NÃO O NÚMERO
+- VERIFICAÇÃO DE CONECTIVIDADE NÃO ESTÁ UTILIZANDO IDENTIFICADORES
+- FTD completa NÃO ESTÁ UTILIZANDO IDENTIFICADORES NO DISPLAY
+- FTD/FTI VERTICE NÃO ESTÁ UTILIZANDO IDENTIFICADORES
+- verificação de conectividade ainda apresenta erro de display quando o ultimo subgrafo é somente 1 vertice
 
+
+COLORAÇÃO
 1-PASSO / 1ºVERTICE A COLORIR
     escolher o vertice com o maior numero de ligações
 
@@ -20,9 +28,11 @@ COLORAÇÃO
 
 Nota:
 Numerar as cores por ordem crescente (tabela de cores)
-Escolhido um vértice para colorir, seleccionar sempre a cor admissível com número mais baixo.
+Escolhido um vértice para colorir, selecionar sempre a cor admissível com número mais baixo.
 
 */
+
+vector<string> cores = {"Vermelho", "Azul","Amarelo","Verde","Laranja","Roxo","Rosa","Preto","Branco","Cinza","Ciano","Magenta"};
 
 struct Grafo {
     int numVertices;
@@ -83,15 +93,16 @@ struct Grafo {
         }
     }
 
-    void adicionarVertice() {
+    void adicionarVertice( char c ) {
         for ( int i = 0; i < numVertices; i++ ) {
             matriz[i].push_back(0);
         }
         numVertices++;
         matriz.push_back( vector<int>(numVertices, 0) );
+        identificadores.push_back(c);
     }
 
-    bool removerVertice(char c) { // c é passado pelo usuário
+    bool removerVertice( char c ) { // c é passado pelo usuário
         int v = indiceDoVertice(c); // pegamos o indice baseado no char passado pelo usuario
         if (v < 0 || v >= numVertices) return false;
         matriz.erase( matriz.begin()+v ); // apaga a linha do vertice na matriz
@@ -411,12 +422,12 @@ void adicionarArestas ( Grafo &grafo ) {
         //     break;
         // }
 
-        // if (origem < 1 || origem > grafo.numVertices || destino < 1 || destino > grafo.numVertices || origem==destino) {
-        //     cout << "Vertice fora do intervalo permitido. Encerrando...\n";
-        //     cin.clear(); 
-        //     cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        //     break;
-        // }
+        if (origem < 0 || origem > grafo.numVertices || destino < 0 || destino > grafo.numVertices || origem==destino) {
+            cout << "Vertice fora do intervalo permitido. Encerrando...\n";
+            cin.clear(); 
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            return;
+        }
 
         if(!grafo.geradoraMinima){
             grafo.adicionarAresta(origem, destino);
@@ -451,14 +462,14 @@ void removerArestas ( Grafo &grafo ) {
     //     cin.ignore(numeric_limits<streamsize>::max(), '\n');
     // }
 
-    if (origem < 1 || origem > grafo.numVertices || destino < 1 || destino > grafo.numVertices || origem==destino) {
+    if (origem < 0 || origem > grafo.numVertices || destino < 0 || destino > grafo.numVertices || origem==destino) {
         cout << "Vertice fora do intervalo permitido. Encerrando...\n";
         cin.clear(); 
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
         return;
     }
 
-    grafo.removerAresta(origem-1, destino-1);
+    grafo.removerAresta(origem, destino);
 }
 
 void lerMatrizCompleta(Grafo& grafo) {
@@ -539,6 +550,47 @@ vector<pair<int, int>> AGV ( Grafo &grafo ) {
 
     return agv;
 }
+/*1-PASSO / 1ºVERTICE A COLORIR
+    escolher o vertice com o maior numero de ligações
+
+2-PASSO 
+    escolher o vertice que, no momento, for adjacente ao maior número de cores diferentes(grau de saturação)
+    REPETIR ESSE PASSO ATÉ COLORIR TODOS OS VÉRTICES
+
+Nota:
+Numerar as cores por ordem crescente (tabela de cores)
+Escolhido um vértice para colorir, selecionar sempre a cor admissível com número mais baixo.*/
+void coloracao ( Grafo &grafo ) {
+    int maior_num_ligacoes=0, num_ligacoes, indice_mais_ligacoes;
+    for(int i=0; i<grafo.numVertices; i++){ // acha o vértice com o maior numero de ligações
+        num_ligacoes=0;
+        for(int j=0; j<grafo.numVertices; j++){
+            if(i!=j){
+                if ( grafo.matriz[i][j] > 1 ) {
+                    num_ligacoes++;
+                    if ( num_ligacoes > maior_num_ligacoes ){
+                        maior_num_ligacoes = num_ligacoes;
+                        indice_mais_ligacoes = i;
+                    }
+                }
+            }
+        }
+    }
+
+    vector<string> cores_vertices(grafo.numVertices,""); // inicia todas as posições com ""
+    cores_vertices[indice_mais_ligacoes] = cores[0];
+    while ( count(cores_vertices.begin(), cores_vertices.end(), "") > 0 ){
+        /*
+        escolher o vertice que, no momento, for adjacente ao maior número de cores diferentes(grau de saturação)
+        REPETIR ESSE PASSO ATÉ COLORIR TODOS OS VÉRTICES
+        
+        
+        verificar quais vertices não coloridos estão conectados aos vertices coloridos atuais
+
+        */
+
+    }
+}
 
 int main() {
     char dirigidoResposta, formaEntrada;
@@ -585,6 +637,7 @@ int main() {
     system("cls");
 
     while(true){
+        coloracao ( grafo );
         cout << "------------------------------------------------------------------------------------------------------\n";
         cout << "Escolha uma opcao de interacao com o grafo:\n\n";
         cout << "0. Limpar o console\n";
@@ -675,7 +728,17 @@ int main() {
                 }
             break;
         case 6:
-            grafo.adicionarVertice();
+            cout << "Digite um CARACTERE DIFERENTE dos caracteres dos vertices existentes ( ";
+            grafo.imprimirIdentificadores();
+            cout << ").\n";
+            cout << "Digite um caractere já utilizado para voltar.\n";
+
+            char c_novo;
+            cin >> c_novo;
+            if ( grafo.indiceDoVertice(c_novo) == -1 )
+                grafo.adicionarVertice(c_novo);
+            else
+                cout << "Caractere digitado já está em uso. Voltando ao menu.\n";
             break;
         case 7:
             cout << "Digite um vertice entre os vertices existentes ( ";
