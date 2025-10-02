@@ -10,15 +10,9 @@ using namespace std;
 
 /*
 A FAZER
-- NA OPÇÃO DE PERCORRER PARA UTILIZAR BFS E DFS, PRECISA UTILIZAR OS IDENTIFICADORES EM VEZ DE NÚMEROS
-- AO ADICIONAR UM VÉRTICE, PRECISA MUDAR PARA PEDIR O IDENTIFICADOR, NÃO O NÚMERO
-- VERIFICAÇÃO DE CONECTIVIDADE NÃO ESTÁ UTILIZANDO IDENTIFICADORES
-- FTD completa NÃO ESTÁ UTILIZANDO IDENTIFICADORES NO DISPLAY
-- FTD/FTI VERTICE NÃO ESTÁ UTILIZANDO IDENTIFICADORES
 - verificação de conectividade ainda apresenta erro de display quando o ultimo subgrafo é somente 1 vertice
 
-
-COLORAÇÃO
+-COLORAÇÃO
 1-PASSO / 1ºVERTICE A COLORIR
     escolher o vertice com o maior numero de ligações
 
@@ -52,7 +46,7 @@ struct Grafo {
         }
     }
 
-    int indiceDoVertice (char c) {
+    int indiceDoVertice (char c) const {
         for ( int i=0; i<numVertices; i++ ) {
             if( identificadores[i] == c )
                 return i;
@@ -235,32 +229,38 @@ vector<int> busca_largura_completa ( const vector<vector<int>> &matriz, int come
     return visitados;
 }
 
-void percorrer( const vector<vector<int>> &matriz ){
-    int tam = matriz.size();
-    char metodo;
+void percorrer( const Grafo &grafo ){
+    int tam = grafo.matriz.size();
+    char metodo, char_inicio;
     int inicio=0;
     cout << "Qual será o método para percorrer?(b ou B -> BFS, qualquer outro caractere -> DFS)\n";
     cin >> metodo;
 
-    cout << "Qual o vertice inicial para percorrer?(entre 1 e " << tam << ")\n";
-    cin >> inicio;
+    cout << "Qual o vertice inicial para percorrer?( ";
+    grafo.imprimirIdentificadores();
+    cout << ").\n";
+    cin >> char_inicio;
+    inicio = grafo.indiceDoVertice(char_inicio);
 
-    while ( inicio <= 0 || inicio > tam ) {
-        cout << "Vertice inválido (válido de 1 até " << tam << ")\n";
-        cin >> inicio;
+    while ( inicio < 0 || inicio > tam ) {
+        cout << "Vertice inválido (válidos: ";
+        grafo.imprimirIdentificadores();
+        cout << ").\n";
+        cin >> char_inicio;
+        inicio = grafo.indiceDoVertice(char_inicio);
     }
     
     cout << endl;
 
     if( metodo == 66 || metodo == 98 ) {
-        vector<int> exemploBfs = busca_largura_completa(matriz, inicio-1);
+        vector<int> exemploBfs = busca_largura_completa(grafo.matriz, inicio);
         for (int i = 0; i < exemploBfs.size(); i++) {
-            cout << exemploBfs[i]+1 << endl;
+            cout << grafo.identificadores[ exemploBfs[i] ] << endl;
         }
     } else {
-        vector<int> exemploDfs = busca_profundidade_completa(matriz, inicio-1);
+        vector<int> exemploDfs = busca_profundidade_completa(grafo.matriz, inicio);
         for (int i = 0; i < exemploDfs.size(); i++) {
-            cout << exemploDfs[i]+1 << endl;
+            cout << grafo.identificadores[ exemploDfs[i] ] << endl;
         }
     }
 }
@@ -359,16 +359,16 @@ vector<vector<int>> subgrafos_forte ( const Grafo &grafo ) {
     return subgrafos;
 }
 
-void imprimir_matriz ( vector<vector<int>> matriz )  {
+void imprimir_matriz ( vector<vector<int>> matriz, vector<char> &identificadores )  {
     int tam = matriz.size();
     cout << "Matriz " << tam << "x" << tam << ":" << endl;
-    cout << "  ";
-    for (int i = 0; i < tam+1; ++i) {
-        cout << setw(4) << i;
+    cout << setw(6) << "";
+    for (int i = 0; i < tam; ++i) {
+        cout << setw(4) << identificadores[i];
     }
     cout << endl;
     for (int i = 0; i < tam; ++i) {
-        cout << setw(4) << i+1 <<"->";
+        cout << setw(4) << identificadores[i] <<"->";
         for (int j = 0; j < tam; ++j) {
             if (matriz[i][j] == -1)
                 cout << setw(4) << ".";
@@ -560,37 +560,81 @@ vector<pair<int, int>> AGV ( Grafo &grafo ) {
 Nota:
 Numerar as cores por ordem crescente (tabela de cores)
 Escolhido um vértice para colorir, selecionar sempre a cor admissível com número mais baixo.*/
-void coloracao ( Grafo &grafo ) {
-    int maior_num_ligacoes=0, num_ligacoes, indice_mais_ligacoes;
-    for(int i=0; i<grafo.numVertices; i++){ // acha o vértice com o maior numero de ligações
-        num_ligacoes=0;
-        for(int j=0; j<grafo.numVertices; j++){
-            if(i!=j){
-                if ( grafo.matriz[i][j] > 1 ) {
-                    num_ligacoes++;
-                    if ( num_ligacoes > maior_num_ligacoes ){
-                        maior_num_ligacoes = num_ligacoes;
-                        indice_mais_ligacoes = i;
-                    }
-                }
-            }
-        }
-    }
+// void coloracao ( Grafo &grafo ) {
+//     int maior_num_ligacoes=0, num_ligacoes, indice_mais_ligacoes;
+//     for(int i=0; i<grafo.numVertices; i++){ // acha o vértice com o maior numero de ligações
+//         num_ligacoes=0;
+//         for(int j=0; j<grafo.numVertices; j++){
+//             if(i!=j){
+//                 if ( grafo.matriz[i][j] > 1 ) {
+//                     num_ligacoes++;
+//                     if ( num_ligacoes > maior_num_ligacoes ){
+//                         maior_num_ligacoes = num_ligacoes;
+//                         indice_mais_ligacoes = i;
+//                     }
+//                 }
+//             }
+//         }
+//     }
 
-    vector<string> cores_vertices(grafo.numVertices,""); // inicia todas as posições com ""
-    cores_vertices[indice_mais_ligacoes] = cores[0];
-    while ( count(cores_vertices.begin(), cores_vertices.end(), "") > 0 ){
-        /*
-        escolher o vertice que, no momento, for adjacente ao maior número de cores diferentes(grau de saturação)
-        REPETIR ESSE PASSO ATÉ COLORIR TODOS OS VÉRTICES
+//     vector<string> cores_vertices(grafo.numVertices,""); // inicia todas as posições com ""
+//     cores_vertices[indice_mais_ligacoes] = cores[0];
+//     while ( count(cores_vertices.begin(), cores_vertices.end(), "") > 0 ){
+//         int max_saturacao = -1;
+//         int vertice_escolhido = -1;
+//         int grau_vertice_escolhido = -1;
+
+//         for (int i = 0; i < grafo.numVertices; i++) {
+//             if (cores_vertices[i] == "") { // se ainda não foi colorido
+//                 set<string> cores_vizinhos;
+//                 int grau_vertice = 0;
+//                 for (int j = 0; j < grafo.numVertices; j++) {
+//                     if (grafo.matriz[i][j] > 0 && cores_vertices[j] != "") {
+//                         cores_vizinhos.insert(cores_vertices[j]);
+//                     }
+//                     if (grafo.matriz[i][j] > 0) {
+//                         grau_vertice++;
+//                     }
+//                 }
+
+//                 int saturacao = cores_vizinhos.size();
+
+//                 // Se tiver maior saturação, ou mesmo valor mas maior grau, atualiza o vértice escolhido
+//                 if (saturacao > max_saturacao || 
+//                 (saturacao == max_saturacao && grau_vertice > grau_vertice_escolhido)) {
+//                     max_saturacao = saturacao;
+//                     vertice_escolhido = i;
+//                     grau_vertice_escolhido = grau_vertice;
+//                 }
+//             }
+//         }
+
+//         // Determinar a menor cor disponível para esse vértice (que não está entre os vizinhos)
+//         set<string> cores_usadas;
+//         for (int j = 0; j < grafo.numVertices; j++) {
+//             if (grafo.matriz[vertice_escolhido][j] > 0 && cores_vertices[j] != "") {
+//                 cores_usadas.insert(cores_vertices[j]);
+//             }
+//         }
+
+//         for (const string& cor : cores) {
+//             if (cores_usadas.find(cor) == cores_usadas.end()) {
+//                 cores_vertices[vertice_escolhido] = cor;
+//                 break;
+//             }
+//         }
+//         /*
+//         escolher o vertice que, no momento, for adjacente ao maior número de cores diferentes(grau de saturação)
+//         REPETIR ESSE PASSO ATÉ COLORIR TODOS OS VÉRTICES
         
         
-        verificar quais vertices não coloridos estão conectados aos vertices coloridos atuais
+//         verificar quais vertices não coloridos estão conectados aos vertices coloridos atuais 
+//         ou verificar quais vertices nao coloridos estão conectados com vertices coloridos
 
-        */
+//         */
 
-    }
-}
+//     }
+// }
 
 int main() {
     char dirigidoResposta, formaEntrada;
@@ -637,7 +681,7 @@ int main() {
     system("cls");
 
     while(true){
-        coloracao ( grafo );
+        // coloracao ( grafo );
         cout << "------------------------------------------------------------------------------------------------------\n";
         cout << "Escolha uma opcao de interacao com o grafo:\n\n";
         cout << "0. Limpar o console\n";
@@ -666,29 +710,25 @@ int main() {
             grafo.imprimirMatriz();
             break;
         case 2:
-            percorrer(grafo.matriz);
+            percorrer(grafo);
             break;
         case 3:
-            imprimir_matriz( fecho_transitivo_distancia(grafo.matriz) );
+            imprimir_matriz( fecho_transitivo_distancia(grafo.matriz), grafo.identificadores );
             break;
         case 4:
-            cout << "Digite um Vertice entre 1 e " << grafo.numVertices << ".\n";
+            cout << "Digite um vertice entre os vertices existentes ( ";
+            grafo.imprimirIdentificadores();
+            cout << ").\n";
             cout << "Digite um valor invalido para voltar.\n";
 
+            char char_vertice_ft;
             int vertice_ft;
 
-            cout << "Vertice: ";
-            if (!( cin >> vertice_ft )) {
-                cout << "Entrada invalida detectada.\n";
-                cin.clear(); 
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                break;
-            }
+            cin >> char_vertice_ft;
+            vertice_ft = grafo.indiceDoVertice(char_vertice_ft);
 
-            if ( vertice_ft < 1 || vertice_ft > grafo.numVertices ) {
-                cout << "Vertice fora do intervalo permitido.\n";
-                cin.clear(); 
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            if ( vertice_ft == -1 ){
+                cout << "Entrada invalida detectada.\n";
                 break;
             }
 
@@ -700,13 +740,25 @@ int main() {
             cin >> diretoResposta;
 
             if( diretoResposta == 83 || diretoResposta == 115 ) {
+                cout << "\t";
                 for (int i=0; i<matriz_ft.size(); i++) {
-                    cout << matriz_ft[vertice_ft-1][i] << " ";
+                    cout << setw(4) << grafo.identificadores[i];
+                }
+                cout << endl;
+                cout << setw(4) << grafo.identificadores[vertice_ft] << " -> ";
+                for (int i=0; i<matriz_ft.size(); i++) {
+                    cout << setw(4) << matriz_ft[vertice_ft][i];
                 }
                 cout << endl;
             } else {
+                cout << "\t";
                 for (int i=0; i<matriz_ft.size(); i++) {
-                    cout << matriz_ft[i][vertice_ft-1] << " ";
+                    cout << setw(4) << grafo.identificadores[i];
+                }
+                cout << endl;
+                cout << setw(4) << grafo.identificadores[vertice_ft] << " -> ";
+                for (int i=0; i<matriz_ft.size(); i++) {
+                    cout << setw(4) <<matriz_ft[i][vertice_ft];
                 }
                 cout << endl;
             }
@@ -721,7 +773,7 @@ int main() {
                 for (int i=0; i<sub.size(); i++) {
                     cout << "{ ";
                     for (int j=0; j<sub[i].size(); j++) {
-                        cout << sub[i][j]+1;
+                        cout << grafo.identificadores[ sub[i][j] ];
                         if(j<sub[i].size()-1)cout << ", ";
                     }
                     cout << " }\n";
