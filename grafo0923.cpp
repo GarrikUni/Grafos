@@ -330,29 +330,46 @@ vector<vector<int>> fecho_transitivo_distancia( const vector<vector<int>> &matri
     return matriz_ftd;
 }
 
+bool ja_esta_em_subgrafo ( vector<vector<int>> &subgrafos, int valor ) {
+    for (int i = 0; i < subgrafos.size(); i++) {
+        for (int j = 0; j < subgrafos[i].size(); j++) {
+            if ( subgrafos[i][j] == valor ) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 vector<vector<int>> subgrafos_forte ( const Grafo &grafo ) {
     vector<vector<int>> matriz_ftd = fecho_transitivo_distancia(grafo.matriz);
     vector<vector<int>> subgrafos;
 
     int vertices_em_subgrafos = 0;
+    int vertice_percorrido = 0;
     int ciclo = 0;
 
     while ( vertices_em_subgrafos < grafo.numVertices ) {
         subgrafos.push_back(vector<int>());
 
         for (int j = 0; j < matriz_ftd.size(); j++) {
-            if ( matriz_ftd[ciclo][j] != -1 && matriz_ftd[j][ciclo]!= -1 && count(subgrafos[ciclo].begin(), subgrafos[ciclo].end(), j) == 0 ) {
-                if(j==5){cout << "6\n";} 
+            if ( matriz_ftd[vertice_percorrido][j] != -1 && matriz_ftd[j][vertice_percorrido]!= -1 && !ja_esta_em_subgrafo(subgrafos, j) ) {
                 subgrafos[ciclo].push_back(j);
             }
         }
 
-        // vertices_em_subgrafos += subgrafos[ciclo].size();
-        vertices_em_subgrafos = 0;
-        for (size_t i = 0; i < subgrafos.size(); i++) {
-            vertices_em_subgrafos += subgrafos[ciclo].size();
+        vertices_em_subgrafos += subgrafos[ciclo].size();
+        // vertices_em_subgrafos = 0;
+        // for (int i = 0; i < subgrafos.size(); i++) {
+        //     cout << "Tamanho do Subgrafo = " << subgrafos[i].size() << endl;
+        //     vertices_em_subgrafos += subgrafos[i].size();
+        // }
+        for (int i=0; i<grafo.numVertices; i++){
+            if( !ja_esta_em_subgrafo(subgrafos, i) ){
+                vertice_percorrido = i;
+                break;
+            }
         }
-
         ciclo++;
     }
     
