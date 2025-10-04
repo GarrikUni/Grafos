@@ -2,6 +2,7 @@
 #include <vector>
 #include <stack>
 #include <queue>
+#include <set>
 #include <algorithm>
 #include <limits>
 #include <iomanip> // para setw, melhora a amostragem do console
@@ -9,9 +10,6 @@
 using namespace std;
 
 /*
-A FAZER
-- verificação de conectividade ainda apresenta erro de display quando o ultimo subgrafo é somente 1 vertice
-
 -COLORAÇÃO
 1-PASSO / 1ºVERTICE A COLORIR
     escolher o vertice com o maior numero de ligações
@@ -25,8 +23,6 @@ Numerar as cores por ordem crescente (tabela de cores)
 Escolhido um vértice para colorir, selecionar sempre a cor admissível com número mais baixo.
 
 */
-
-vector<string> cores = {"Vermelho", "Azul","Amarelo","Verde","Laranja","Roxo","Rosa","Preto","Branco","Cinza","Ciano","Magenta"};
 
 struct Grafo {
     int numVertices;
@@ -567,91 +563,168 @@ vector<pair<int, int>> AGV ( Grafo &grafo ) {
 
     return agv;
 }
-/*1-PASSO / 1ºVERTICE A COLORIR
-    escolher o vertice com o maior numero de ligações
 
-2-PASSO 
-    escolher o vertice que, no momento, for adjacente ao maior número de cores diferentes(grau de saturação)
-    REPETIR ESSE PASSO ATÉ COLORIR TODOS OS VÉRTICES
+void coloracao ( Grafo &grafo ) {
+    vector<string> cores = {"Vermelho", "Azul","Amarelo","Verde","Laranja","Roxo","Rosa","Preto","Branco","Cinza","Ciano","Magenta"};
 
-Nota:
-Numerar as cores por ordem crescente (tabela de cores)
-Escolhido um vértice para colorir, selecionar sempre a cor admissível com número mais baixo.*/
-// void coloracao ( Grafo &grafo ) {
-//     int maior_num_ligacoes=0, num_ligacoes, indice_mais_ligacoes;
-//     for(int i=0; i<grafo.numVertices; i++){ // acha o vértice com o maior numero de ligações
-//         num_ligacoes=0;
-//         for(int j=0; j<grafo.numVertices; j++){
-//             if(i!=j){
-//                 if ( grafo.matriz[i][j] > 1 ) {
-//                     num_ligacoes++;
-//                     if ( num_ligacoes > maior_num_ligacoes ){
-//                         maior_num_ligacoes = num_ligacoes;
-//                         indice_mais_ligacoes = i;
-//                     }
-//                 }
-//             }
-//         }
-//     }
+    if (cores.empty()) {
+        cout << "Erro: nenhuma cor disponível." << endl;
+        return;
+    }
 
-//     vector<string> cores_vertices(grafo.numVertices,""); // inicia todas as posições com ""
-//     cores_vertices[indice_mais_ligacoes] = cores[0];
-//     while ( count(cores_vertices.begin(), cores_vertices.end(), "") > 0 ){
-//         int max_saturacao = -1;
-//         int vertice_escolhido = -1;
-//         int grau_vertice_escolhido = -1;
+    int n = grafo.numVertices;
+    vector<string> cores_vertices(n, "");
 
-//         for (int i = 0; i < grafo.numVertices; i++) {
-//             if (cores_vertices[i] == "") { // se ainda não foi colorido
-//                 set<string> cores_vizinhos;
-//                 int grau_vertice = 0;
-//                 for (int j = 0; j < grafo.numVertices; j++) {
-//                     if (grafo.matriz[i][j] > 0 && cores_vertices[j] != "") {
-//                         cores_vizinhos.insert(cores_vertices[j]);
-//                     }
-//                     if (grafo.matriz[i][j] > 0) {
-//                         grau_vertice++;
-//                     }
-//                 }
+    // Calcula o grau de cada vértice
+    vector<int> grau(n, 0);
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (grafo.matriz[i][j] > 0 || grafo.matriz[j][i] > 0) {
+                if (i != j) {
+                    grau[i]++;
+                }
+            }
+        }
+    }
 
-//                 int saturacao = cores_vizinhos.size();
+    // Começa pelo vértice com maior grau
+    int inicial = max_element(grau.begin(), grau.end()) - grau.begin();
+    cores_vertices[inicial] = cores[0];
 
-//                 // Se tiver maior saturação, ou mesmo valor mas maior grau, atualiza o vértice escolhido
-//                 if (saturacao > max_saturacao || 
-//                 (saturacao == max_saturacao && grau_vertice > grau_vertice_escolhido)) {
-//                     max_saturacao = saturacao;
-//                     vertice_escolhido = i;
-//                     grau_vertice_escolhido = grau_vertice;
-//                 }
-//             }
-//         }
+    // Enquanto ainda há vértices não coloridos
+    while ( count(cores_vertices.begin(), cores_vertices.end(), "") > 0 ) {
+        int melhor_indice = -1;
+        int maior_saturacao = -1;
+        int maior_grau = -1;
 
-//         // Determinar a menor cor disponível para esse vértice (que não está entre os vizinhos)
-//         set<string> cores_usadas;
-//         for (int j = 0; j < grafo.numVertices; j++) {
-//             if (grafo.matriz[vertice_escolhido][j] > 0 && cores_vertices[j] != "") {
-//                 cores_usadas.insert(cores_vertices[j]);
-//             }
-//         }
+        for (int i = 0; i < n; i++) {
+            if (cores_vertices[i] != "") continue;
 
-//         for (const string& cor : cores) {
-//             if (cores_usadas.find(cor) == cores_usadas.end()) {
-//                 cores_vertices[vertice_escolhido] = cor;
-//                 break;
-//             }
-//         }
-//         /*
-//         escolher o vertice que, no momento, for adjacente ao maior número de cores diferentes(grau de saturação)
-//         REPETIR ESSE PASSO ATÉ COLORIR TODOS OS VÉRTICES
-        
-        
-//         verificar quais vertices não coloridos estão conectados aos vertices coloridos atuais 
-//         ou verificar quais vertices nao coloridos estão conectados com vertices coloridos
+            // Coleta as cores dos vizinhos
+            set<string> cores_vizinhos;
+            for (int j = 0; j < n; j++) {
+                if (grafo.matriz[i][j] > 0 || grafo.matriz[j][i] > 0) {
+                    if (cores_vertices[j] != "") {
+                        cores_vizinhos.insert(cores_vertices[j]);
+                    }
+                }
+            }
 
-//         */
+            int saturacao = (int)cores_vizinhos.size();
 
-//     }
-// }
+            // Critério de escolha: 1. Maior saturação, Em caso de empate, maior grau
+            if ( saturacao > maior_saturacao || (saturacao == maior_saturacao && grau[i] > maior_grau) ) {
+                maior_saturacao = saturacao;
+                maior_grau = grau[i];
+                melhor_indice = i;
+            }
+        }
+
+        if (melhor_indice == -1) {
+            cout << "Erro: nenhum vértice válido encontrado para colorir." << endl;
+            return;
+        }
+
+        // Coleta as cores proibidas dos vizinhos
+        set<string> cores_proibidas;
+        for (int j = 0; j < n; j++) {
+            if ( grafo.matriz[melhor_indice][j] > 0 || grafo.matriz[j][melhor_indice] > 0 ) {
+                if ( cores_vertices[j] != "" ) {
+                    cores_proibidas.insert(cores_vertices[j]);
+                }
+            }
+        }
+
+        // Escolhe a primeira cor disponível
+        string cor_escolhida = "";
+        for (const string& cor : cores) {
+            if ( cores_proibidas.find(cor) == cores_proibidas.end() ) {
+                cor_escolhida = cor;
+                break;
+            }
+        }
+
+        if (cor_escolhida == "") {
+            cout << "Erro: sem cores disponíveis para o vértice " << melhor_indice << endl;
+            return;
+        }
+
+        cores_vertices[melhor_indice] = cor_escolhida;
+    }
+
+    cout << "--- Cores ---\n";
+    for (int i = 0; i < n; i++) {
+        cout << grafo.identificadores[i] << ": " << cores_vertices[i] << endl;
+    }
+    cout << "--- Fim das Cores ---\n";
+
+
+    // int maior_num_ligacoes=0, num_ligacoes, indice_mais_ligacoes=0;
+    // for(int i=0; i<grafo.numVertices; i++){ // acha o vértice com o maior numero de ligações
+    //     num_ligacoes=0;
+    //     for(int j=0; j<grafo.numVertices; j++){
+    //         if(i!=j){
+    //             if ( grafo.matriz[i][j] > 0 ) {
+    //                 num_ligacoes++;
+    //                 if ( num_ligacoes > maior_num_ligacoes ){
+    //                     maior_num_ligacoes = num_ligacoes;
+    //                     indice_mais_ligacoes = i;
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+    // vector<string> cores_vertices(grafo.numVertices, ""); // Iniciamos todos os vertices sem cor("")
+    // cores_vertices[indice_mais_ligacoes] = cores[0]; // O Indice com mais ligações recebe a primeira cor
+
+    // vector<string> cores_disponiveis;
+    // vector<string> cores_vizinhos; // guarda as cores dos vertices adjacentes, size() funciona como grau de saturação
+
+    // while ( count(cores_vertices.begin(), cores_vertices.end(), "") > 0 ) { // Repete enquanto possuem vertices sem cores
+    //     int maior_grau = -1,indice_maior_grau=-1;
+
+    //     for(int i=0; i<grafo.numVertices; i++){ 
+    //         if( cores_vertices[i] == "" ) { // procura maior grau de saturação
+    //             cores_vizinhos.clear();
+    //             for (int j=0; j<grafo.numVertices; j++){
+    //                 if ( i!=j && cores_vertices[j] != "" ) { // Ignora diagonal principal e vertices não coloridos
+    //                     if ( grafo.matriz[i][j] > 0 || grafo.matriz[j][i] > 0 ) {
+    //                         if ( count(cores_vizinhos.begin(), cores_vizinhos.end(), cores_vertices[j] ) == 0 ) {
+    //                             cores_vizinhos.push_back( cores_vertices[j] );
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //             if ( cores_vizinhos.size() >= maior_grau ) { // em caso de empate, escolhe o maior indice
+    //                 maior_grau = cores_vizinhos.size();
+    //                 indice_maior_grau = i;
+    //             }
+    //         }
+    //     }
+    //     if (indice_maior_grau == -1) {
+    //         cout << "Erro interno: nenhum vértice válido encontrado para colorir." << endl;
+    //         return;
+    //     }
+    //     cores_disponiveis = cores;
+    //     for(int i=0; i<grafo.numVertices; i++){ 
+    //         if ( grafo.matriz[i][indice_maior_grau] > 0 || grafo.matriz[indice_maior_grau][i] > 0 ) {
+    //             if ( cores_vertices[i] != "" ) { // se o vizinho for colorido apagamos a cor dele das cores_disponiveis
+    //                 for( int j=0; j<cores_disponiveis.size(); j++){
+    //                     if( cores_disponiveis[j] == cores_vertices[i] ){
+    //                         cores_disponiveis.erase( cores_disponiveis.begin()+j );
+    //                         break;
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     if (cores_disponiveis.empty()) {
+    //         cout << "Erro: sem cores disponíveis para o vértice " << indice_maior_grau << endl;
+    //         return;
+    //     }
+    //     cores_vertices[indice_maior_grau] = cores_disponiveis.front();
+    // }
+}
 
 int main() {
     char dirigidoResposta, formaEntrada;
@@ -698,7 +771,6 @@ int main() {
     system("cls");
 
     while(true){
-        // coloracao ( grafo );
         cout << "------------------------------------------------------------------------------------------------------\n";
         cout << "Escolha uma opcao de interacao com o grafo:\n\n";
         cout << "0. Limpar o console\n";
@@ -712,6 +784,7 @@ int main() {
         cout << "8. Adicionar Arestas\n";
         cout << "9. Remover Arestas\n";
         cout << "10. Exibe as conexões de AVG\n";
+        cout << "11. COLORAÇÃO\n";
         cout << "99. Sair\n";
         cout << "------------------------------------------------------------------------------------------------------\n";
         if (!(cin >> menu)) {
@@ -833,6 +906,9 @@ int main() {
             for (vector<pair<int, int> >::const_iterator it = ex.begin(); it != ex.end(); ++it) {
                 cout << "(" << it->first+1 << ", " << it->second+1 << ")" << endl; // +1 para auxiliar a visualização para o usuário
             }
+            break;
+        case 11:
+            coloracao ( grafo );
             break;
         case 99:
             cout << "Saindo.\n\n\n";
