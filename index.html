@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Visualizador Interativo de Grafo</title>
+    
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    
+    <style type="text/css">
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+        }
+        #visualizacao {
+            width: 95vw; /* Ocupa 95% da largura da tela */
+            height: 80vh; /* Ocupa 80% da altura da tela */
+            border: 1px solid #ccc;
+            margin: 20px auto; /* Centraliza a caixa */
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Visualizador de Grafo (Gerado por C++)</h1>
+    
+    <div id="visualizacao"></div>
+
+    <script type="text/javascript">
+        // Função principal que será executada para desenhar o grafo
+        async function desenharGrafo() {
+            // Pega o elemento HTML que servirá de container para o grafo
+            const container = document.getElementById('visualizacao');
+
+            // 4. Caminho para o arquivo JSON. O './' significa "na mesma pasta".
+            const caminhoJson = './grafo.json';
+
+            try {
+                // 5. Carrega os dados do arquivo JSON de forma assíncrona
+                const response = await fetch(caminhoJson);
+                if (!response.ok) {
+                    throw new Error(`Erro ao carregar o arquivo: ${response.statusText}`);
+                }
+                const dadosGrafo = await response.json();
+
+                // 6. Prepara os dados no formato que a biblioteca Vis.js entende
+                const dados = {
+                    nodes: new vis.DataSet(dadosGrafo.nodes),
+                    edges: new vis.DataSet(dadosGrafo.edges),
+                };
+
+                // 7. Define opções para customizar a aparência e o comportamento do grafo
+                const opcoes = {
+                    nodes: {
+                        shape: 'dot', // Formato dos nós
+                        size: 20,
+                        font: {
+                            size: 16,
+                            color: '#333'
+                        },
+                        borderWidth: 2,
+                    },
+                    edges: {
+                        width: 2,
+                        arrows: 'to', // Adiciona setas nas arestas (se o grafo for dirigido)
+                        font: {
+                            align: 'top' // Alinha o peso da aresta
+                        }
+                    },
+                    physics: {
+                        // Ativa a simulação física para um layout automático e agradável
+                        enabled: true,
+                        solver: 'barnesHut', // Um bom algoritmo de layout
+                    },
+                    interaction: {
+                        // Permite interagir com o grafo
+                        hover: true,
+                        dragNodes: true,
+                        zoomView: true,
+                        dragView: true
+                    }
+                };
+
+                // 8. Cria a rede (o grafo) e a renderiza no container!
+                const network = new vis.Network(container, dados, opcoes);
+
+            } catch (error) {
+                console.error("Não foi possível renderizar o grafo:", error);
+                container.innerHTML = `<p style="color: red; text-align: center; padding-top: 50px;">
+                    <b>Falha ao carregar o grafo.</b><br>
+                    Verifique se o arquivo <b>grafo.json</b> existe na mesma pasta e se o servidor web está rodando.
+                </p>`;
+            }
+        }
+
+        // Chama a função para iniciar todo o processo
+        desenharGrafo();
+    </script>
+</body>
+</html>

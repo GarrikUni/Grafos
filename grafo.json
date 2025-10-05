@@ -1,0 +1,61 @@
+{
+    "edges": [
+        {
+            "from": "a",
+            "label": "1",
+            "to": "b"
+        },
+        {
+            "from": "b",
+            "label": "1",
+            "to": "c"
+        },
+        {
+            "from": "c",
+            "label": "1",
+            "to": "a"
+        },
+        {
+            "from": "d",
+            "label": "1",
+            "to": "a"
+        },
+        {
+            "from": "d",
+            "label": "1",
+            "to": "b"
+        },
+        {
+            "from": "e",
+            "label": "1",
+            "to": "a"
+        }
+    ],
+    "nodes": [
+        {
+            "color": "red",
+            "id": "a",
+            "label": "a"
+        },
+        {
+            "color": "blue",
+            "id": "b",
+            "label": "b"
+        },
+        {
+            "color": "yellow",
+            "id": "c",
+            "label": "c"
+        },
+        {
+            "color": "yellow",
+            "id": "d",
+            "label": "d"
+        },
+        {
+            "color": "blue",
+            "id": "e",
+            "label": "e"
+        }
+    ]
+}
