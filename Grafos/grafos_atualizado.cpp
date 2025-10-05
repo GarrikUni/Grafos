@@ -134,9 +134,145 @@ struct Grafo {
     }
 };
 
+void coloracao(Grafo &grafo) {// Função de coloração ATUALIZADA para salvar as cores no grafo
 
-void exportarParaJson(const Grafo& grafo) { // Crucial: const Grafo& (passado por referência)
+    grafo.cores.assign(grafo.numVertices, "");
+
+    // --- Configuração das Cores ---
+    vector<string> cores_portugues = {
+        "Vermelho", "Azul", "Amarelo", "Verde", "Laranja", "Roxo",
+        "Rosa", "Preto", "Branco", "Cinza", "Ciano", "Magenta"};
+
+    map<string, string> mapa_cores;
+    mapa_cores["Vermelho"] = "red";
+    mapa_cores["Azul"] = "blue";
+    mapa_cores["Amarelo"] = "yellow";
+    mapa_cores["Verde"] = "green";
+    mapa_cores["Laranja"] = "orange";
+    mapa_cores["Roxo"] = "purple";
+    mapa_cores["Rosa"] = "pink";
+    mapa_cores["Preto"] = "black";
+    mapa_cores["Branco"] = "white";
+    mapa_cores["Cinza"] = "gray";
+    mapa_cores["Ciano"] = "cyan";
+    mapa_cores["Magenta"] = "magenta";
+
+    if (cores_portugues.empty()) {
+        cout << "Erro: nenhuma cor disponível." << endl;
+        return;
+    }
+
+    // --- Inicialização ---
+    int n = grafo.numVertices;
+    if (n == 0) return; // Evita erros se o grafo estiver vazio
+    
+    vector<string> cores_vertices(n, "");
+    vector<int> grau(n, 0);
+
+    // --- Lógica Principal do Algoritmo de Coloração ---
+
+    // 1. Calcula o grau de cada vértice
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (i != j && (grafo.matriz[i][j] > 0 || grafo.matriz[j][i] > 0)) {
+                grau[i]++;
+            }
+        }
+    }
+
+    // 2. Colore o vértice de maior grau com a primeira cor
+    int inicial = max_element(grau.begin(), grau.end()) - grau.begin();
+    cores_vertices[inicial] = cores_portugues[0];
+
+    // 3. Loop principal: colore os vértices restantes
+    while (count(cores_vertices.begin(), cores_vertices.end(), "") > 0) {
+        int melhor_indice = -1;
+        int maior_saturacao = -1;
+        int maior_grau_desempate = -1;
+
+        // Encontra o próximo vértice a ser colorido (maior saturação, depois maior grau)
+        for (int i = 0; i < n; i++) {
+            if (cores_vertices[i] != "") {
+                continue; // Já está colorido, pula
+            }
+
+            set<string> cores_vizinhos;
+            for (int j = 0; j < n; j++) {
+                if (grafo.matriz[i][j] > 0 || grafo.matriz[j][i] > 0) {
+                    if (cores_vertices[j] != "") {
+                        cores_vizinhos.insert(cores_vertices[j]);
+                    }
+                }
+            }
+
+            int saturacao_atual = cores_vizinhos.size();
+
+            // Critério de desempate: maior saturação, seguido por maior grau
+            if (saturacao_atual > maior_saturacao) {
+                maior_saturacao = saturacao_atual;
+                maior_grau_desempate = grau[i];
+                melhor_indice = i;
+            } else if (saturacao_atual == maior_saturacao && grau[i] > maior_grau_desempate) {
+                maior_grau_desempate = grau[i];
+                melhor_indice = i;
+            }
+        }
+
+        if (melhor_indice == -1) {
+            cout << "Erro: não foi possível encontrar o próximo vértice para colorir." << endl;
+            return;
+        }
+
+        // Encontra a menor cor disponível para o vértice escolhido
+        set<string> cores_proibidas;
+        for (int j = 0; j < n; j++) {
+            if (grafo.matriz[melhor_indice][j] > 0 || grafo.matriz[j][melhor_indice] > 0) {
+                if (cores_vertices[j] != "") {
+                    cores_proibidas.insert(cores_vertices[j]);
+                }
+            }
+        }
+
+        string cor_escolhida = "";
+        for (const string &cor : cores_portugues) {
+            if (cores_proibidas.find(cor) == cores_proibidas.end()) {
+                cor_escolhida = cor;
+                break;
+            }
+        }
+
+        if (cor_escolhida == "") {
+            cout << "Erro: não há cores disponíveis para o vértice " << grafo.identificadores[melhor_indice] << endl;
+            return;
+        }
+
+        cores_vertices[melhor_indice] = cor_escolhida;
+    }
+
+    // --- Finalização: Salva as cores no objeto grafo e imprime no console ---
+    cout << "\n--- Cores Atribuídas ---\n";
+    for (int i = 0; i < n; i++) {
+        string cor_pt = cores_vertices[i];
+        string cor_web = "";
+
+        if (mapa_cores.count(cor_pt)) {
+            cor_web = mapa_cores[cor_pt];
+        }
+
+        grafo.cores[i] = cor_web;
+
+        cout << grafo.identificadores[i] << ": " << cor_pt
+             << " (-> " << cor_web << " para web)" << endl;
+    }
+    cout << "--- Fim das Cores ---\n\n";
+}
+
+void exportarParaJson(Grafo& grafo) { // Crucial: const Grafo& (passado por referência)
+    coloracao ( grafo );
+
     json json_obj; 
+
+    json_obj["dirigido"] = grafo.dirigido;
 
     cout << "\n--- [DEBUG] LENDO CORES DO OBJETO GRAFO PARA EXPORTAR ---" << endl;
     for (int i = 0; i < grafo.numVertices; ++i) {
@@ -626,141 +762,6 @@ vector<pair<int, int>> AGV ( Grafo &grafo ) {
 
     return agv;
 }
-
-void coloracao(Grafo &grafo) {// Função de coloração ATUALIZADA para salvar as cores no grafo
-
-    grafo.cores.assign(grafo.numVertices, "");
-
-    // --- Configuração das Cores ---
-    vector<string> cores_portugues = {
-        "Vermelho", "Azul", "Amarelo", "Verde", "Laranja", "Roxo",
-        "Rosa", "Preto", "Branco", "Cinza", "Ciano", "Magenta"};
-
-    map<string, string> mapa_cores;
-    mapa_cores["Vermelho"] = "red";
-    mapa_cores["Azul"] = "blue";
-    mapa_cores["Amarelo"] = "yellow";
-    mapa_cores["Verde"] = "green";
-    mapa_cores["Laranja"] = "orange";
-    mapa_cores["Roxo"] = "purple";
-    mapa_cores["Rosa"] = "pink";
-    mapa_cores["Preto"] = "black";
-    mapa_cores["Branco"] = "white";
-    mapa_cores["Cinza"] = "gray";
-    mapa_cores["Ciano"] = "cyan";
-    mapa_cores["Magenta"] = "magenta";
-
-    if (cores_portugues.empty()) {
-        cout << "Erro: nenhuma cor disponível." << endl;
-        return;
-    }
-
-    // --- Inicialização ---
-    int n = grafo.numVertices;
-    if (n == 0) return; // Evita erros se o grafo estiver vazio
-    
-    vector<string> cores_vertices(n, "");
-    vector<int> grau(n, 0);
-
-    // --- Lógica Principal do Algoritmo de Coloração ---
-
-    // 1. Calcula o grau de cada vértice
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            if (i != j && (grafo.matriz[i][j] > 0 || grafo.matriz[j][i] > 0)) {
-                grau[i]++;
-            }
-        }
-    }
-
-    // 2. Colore o vértice de maior grau com a primeira cor
-    int inicial = max_element(grau.begin(), grau.end()) - grau.begin();
-    cores_vertices[inicial] = cores_portugues[0];
-
-    // 3. Loop principal: colore os vértices restantes
-    while (count(cores_vertices.begin(), cores_vertices.end(), "") > 0) {
-        int melhor_indice = -1;
-        int maior_saturacao = -1;
-        int maior_grau_desempate = -1;
-
-        // Encontra o próximo vértice a ser colorido (maior saturação, depois maior grau)
-        for (int i = 0; i < n; i++) {
-            if (cores_vertices[i] != "") {
-                continue; // Já está colorido, pula
-            }
-
-            set<string> cores_vizinhos;
-            for (int j = 0; j < n; j++) {
-                if (grafo.matriz[i][j] > 0 || grafo.matriz[j][i] > 0) {
-                    if (cores_vertices[j] != "") {
-                        cores_vizinhos.insert(cores_vertices[j]);
-                    }
-                }
-            }
-
-            int saturacao_atual = cores_vizinhos.size();
-
-            // Critério de desempate: maior saturação, seguido por maior grau
-            if (saturacao_atual > maior_saturacao) {
-                maior_saturacao = saturacao_atual;
-                maior_grau_desempate = grau[i];
-                melhor_indice = i;
-            } else if (saturacao_atual == maior_saturacao && grau[i] > maior_grau_desempate) {
-                maior_grau_desempate = grau[i];
-                melhor_indice = i;
-            }
-        }
-
-        if (melhor_indice == -1) {
-            cout << "Erro: não foi possível encontrar o próximo vértice para colorir." << endl;
-            return;
-        }
-
-        // Encontra a menor cor disponível para o vértice escolhido
-        set<string> cores_proibidas;
-        for (int j = 0; j < n; j++) {
-            if (grafo.matriz[melhor_indice][j] > 0 || grafo.matriz[j][melhor_indice] > 0) {
-                if (cores_vertices[j] != "") {
-                    cores_proibidas.insert(cores_vertices[j]);
-                }
-            }
-        }
-
-        string cor_escolhida = "";
-        for (const string &cor : cores_portugues) {
-            if (cores_proibidas.find(cor) == cores_proibidas.end()) {
-                cor_escolhida = cor;
-                break;
-            }
-        }
-
-        if (cor_escolhida == "") {
-            cout << "Erro: não há cores disponíveis para o vértice " << grafo.identificadores[melhor_indice] << endl;
-            return;
-        }
-
-        cores_vertices[melhor_indice] = cor_escolhida;
-    }
-
-    // --- Finalização: Salva as cores no objeto grafo e imprime no console ---
-    cout << "\n--- Cores Atribuídas ---\n";
-    for (int i = 0; i < n; i++) {
-        string cor_pt = cores_vertices[i];
-        string cor_web = "";
-
-        if (mapa_cores.count(cor_pt)) {
-            cor_web = mapa_cores[cor_pt];
-        }
-
-        grafo.cores[i] = cor_web;
-
-        cout << grafo.identificadores[i] << ": " << cor_pt
-             << " (-> " << cor_web << " para web)" << endl;
-    }
-    cout << "--- Fim das Cores ---\n\n";
-}
-
-
 
 int main() {
     char dirigidoResposta, formaEntrada;

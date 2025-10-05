@@ -50,6 +50,8 @@
                 }
                 const dadosGrafo = await response.json();
 
+                const arestasComSetas = dadosGrafo.dirigido ? 'to' : { enabled: false };
+
                 // 6. Prepara os dados no formato que a biblioteca Vis.js entende
                 const dados = {
                     nodes: new vis.DataSet(dadosGrafo.nodes),
@@ -69,7 +71,8 @@
                     },
                     edges: {
                         width: 2,
-                        arrows: 'to', // Adiciona setas nas arestas (se o grafo for dirigido)
+                        arrows: arestasComSetas, // Adiciona setas nas arestas (se o grafo for dirigido)
+                        color: '#000',
                         font: {
                             align: 'top' // Alinha o peso da aresta
                         }
